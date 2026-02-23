@@ -80,14 +80,19 @@
   const viewer = document.getElementById("viewer");
 
   function showPage() {
+  // Lance le fondu vers transparent
+  img.classList.add("is-fading");
+
+  // Après un court délai, on change la page
+  setTimeout(() => {
     img.src = "page" + current + ".jpg";
     img.alt = "Programme - page " + current;
     counter.textContent = current + " / " + total;
 
-    // désactive visuellement aux bornes
     prevBtn.style.opacity = (current === 1) ? 0.25 : 0.65;
     nextBtn.style.opacity = (current === total) ? 0.25 : 0.65;
-  }
+  }, 120);
+}
 
   function next() {
     if (current < total) { current++; showPage(); }
