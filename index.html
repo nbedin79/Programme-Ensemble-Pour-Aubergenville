@@ -105,6 +105,11 @@
   prevBtn.addEventListener("click", prev);
   nextBtn.addEventListener("click", next);
 
+img.addEventListener("load", () => {
+  // Remonte l’opacité une fois l’image chargée
+  requestAnimationFrame(() => img.classList.remove("is-fading"));
+});
+  
   // Clavier (PC)
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") next();
