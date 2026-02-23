@@ -1,54 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Programme</title>
 <style>
-body { margin:0; text-align:center; background:#f4f4f4; font-family:Arial;}
-img { max-width:100%; height:auto;}
-button {
-  position:fixed;
-  top:50%;
-  transform:translateY(-50%);
-  background:#076779;
-  color:white;
-  border:none;
-  padding:15px;
-  font-size:20px;
-  cursor:pointer;
-}
-#prev { left:10px; }
-#next { right:10px; }
+  body { margin:0; background:#f4f4f4; font-family:Arial, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 12px; }
+  .viewer {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    overflow: hidden;
+    touch-action: pan-y; /* autorise le scroll vertical, mais gère le swipe horizontal */
+  }
+  img { width:100%; height:auto; display:block; }
+
+  .navBtn {
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    background:#076779;
+    color:white;
+    border:none;
+    padding:14px 16px;
+    font-size:20px;
+    cursor:pointer;
+    border-radius: 999px;
+    opacity: 0.92;
+  }
+  .navBtn:hover { opacity: 1; }
+  #prev { left:10px; }
+  #next { right:10px; }
+
+  .counter {
+    position:absolute;
+    bottom:10px;
+    right:10px;
+    background: rgba(0,0,0,0.65);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 14px;
+    user-select: none;
+  }
 </style>
 </head>
-<body>
 
-<button id="prev" onclick="prev()">←</button>
-<img id="page" src="page1.jpg">
-<button id="next" onclick="next()">→</button>
+<body>
+  <div class="wrap">
+    <div class="viewer" id="viewer">
+      <button class="navBtn" id="prev" aria-label="Page précédente">←</button>
+      <img id="page" src="page1.jpg" alt="Programme - page 1" />
+      <button class="navBtn" id="next" aria-label="Page suivante">→</button>
+      <div class="counter" id="counter">1 / 8</div>
+    </div>
+  </div>
 
 <script>
-let current = 1;
-const total = 8;
+  let current = 1;
+  const total = 8;
 
-function showPage() {
-  document.getElementById("page").src = "page" + current + ".jpg";
-}
+  const img = document.getElementById("page");
+  const counter = document.getElementById("counter");
+  const prevBtn = document.getElementById("prev");
+  const nextBtn = document.getElementById("next");
+  const viewer = document.getElementById("viewer");
 
-function next() {
-  if (current < total) {
-    current++;
-    showPage();
+  function showPage() {
+    img.src = "page" + current + ".jpg";
+    img.alt = "Programme - page " + current;
+    counter.textContent = current + " / " + total;
+
+    // désactive visuellement aux bornes
+    prevBtn.style.opacity = (current === 1) ? 0.35 : 0.92;
+    nextBtn.style.opacity = (current === total) ? 0.35 : 0.92;
   }
-}
 
-function prev() {
-  if (current > 1) {
-    current--;
-    showPage();
+  function next() {
+    if (current < total) { current++; showPage(); }
   }
-}
+
+  function prev() {
+    if (current > 1) { current--; showPage(); }
+  }
+
+  prevBtn.addEventListener("click", prev);
+  nextBtn.addEventListener("click", next);
+
+  // Clavier (PC)
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") next();
+    if (e.key === "ArrowLeft") prev();
+  });
+
+  // Swipe tactile (mobile)
+  let startX = 0;
+  let startY = 0;
+  let isTouching = false;
+
+  viewer.addEventListener("touchstart", (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    isTouching = true;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  viewer.addEventListener("touchend", (e) => {
+    if (!isTouching) return;
+    isTouching = false;
+
+    const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
+    const endY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : startY;
+
+    const dx = endX - startX;
+    const dy = endY - startY;
+
+    // On ne déclenche que si c'est un geste horizontal assez net
+    const minSwipe = 50;          // distance minimale
+    const maxVertical = 60;       // tolérance verticale
+
+    if (Math.abs(dx) >= minSwipe && Math.abs(dy) <= maxVertical) {
+      if (dx < 0) next();  // swipe gauche -> page suivante
+      else prev();         // swipe droite -> page précédente
+    }
+  }, { passive: true });
+
+  // init
+  showPage();
 </script>
-
 </body>
 </html>
