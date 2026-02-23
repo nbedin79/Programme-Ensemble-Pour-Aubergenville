@@ -4,74 +4,64 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
 <title>Programme</title>
+
 <style>
-  body { margin:0; background:#f4f4f4; font-family:Arial, sans-serif; }
-  .wrap { max-width: 1100px; margin: 0 auto; padding: 12px; }
+  body {
+    margin:0;
+    background:#f4f4f4;
+    font-family:Arial, sans-serif;
+  }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 12px;
+  }
+
   .viewer {
     position: relative;
     background: white;
     border-radius: 12px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.12);
     overflow: hidden;
-    touch-action: manipulation; /* autorise le scroll vertical, mais gère le swipe horizontal */
+    touch-action: manipulation;
   }
-  img { width:100%; height:auto; display:block; }
 
-  .stage{
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  background: #fff;
-}
+  img {
+    width:100%;
+    height:auto;
+    display:block;
+  }
 
-.slideImg{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  display: block;
-  transform: translateX(0);
-  opacity: 1;
-  transition: transform 260ms ease-in-out;
-  will-change: transform;
-  pointer-events: none;
-}
+  /* Animation douce */
+  #page {
+    opacity: 1;
+    transition: opacity 180ms ease-in-out;
+  }
 
-/* Pour que la "stage" prenne la hauteur de l'image */
-.stage::before{
-  content:"";
-  display:block;
-  padding-top: 141%; /* approx A4 portrait; ajustera visuellement */
-}
+  #page.is-fading {
+    opacity: 0;
+  }
 
-  
-#page {
-  opacity: 1;
-  transition: opacity 180ms ease-in-out;
-}
-#page.is-fading {
-  opacity: 0;
-}
-  
   .navBtn {
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  background: rgba(7, 103, 121, 0.65); /* couleur + transparence */
-  backdrop-filter: blur(4px);          /* optionnel, effet vitre (si supporté) */
-  -webkit-backdrop-filter: blur(4px);
-  color:white;
-  border:none;
-  padding:14px 16px;
-  font-size:20px;
-  cursor:pointer;
-  border-radius: 999px;
-  opacity: 0.65;                       /* plus transparent par défaut */
-  transition: opacity 0.15s ease;
-  z-index: 10;
-}
-.navBtn:hover { opacity: 0.95; }
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    background: rgba(7, 103, 121, 0.65);
+    color:white;
+    border:none;
+    padding:14px 16px;
+    font-size:20px;
+    cursor:pointer;
+    border-radius: 999px;
+    opacity: 0.65;
+    transition: opacity 0.15s ease;
+  }
+
+  .navBtn:hover {
+    opacity: 0.95;
+  }
+
   #prev { left:10px; }
   #next { right:10px; }
 
@@ -85,138 +75,82 @@
     border-radius: 999px;
     font-size: 14px;
     user-select: none;
-    z-index: 10;
   }
 </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="viewer" id="viewer">
-      <button class="navBtn" id="prev" aria-label="Page précédente">←</button>
-      <div class="stage" id="stage">
-      <img id="imgA" class="slideImg" src="page1.jpg" alt="Programme - page 1" />
-      <img id="imgB" class="slideImg" src="page1.jpg" alt="" />
-      </div>
-      <button class="navBtn" id="next" aria-label="Page suivante">→</button>
-      <div class="counter" id="counter">1 / 8</div>
-    </div>
+
+<div class="wrap">
+  <div class="viewer" id="viewer">
+    <button class="navBtn" id="prev" aria-label="Page précédente">←</button>
+    <img id="page" src="page1.jpg" alt="Programme - page 1" />
+    <button class="navBtn" id="next" aria-label="Page suivante">→</button>
+    <div class="counter" id="counter">1 / 8</div>
   </div>
+</div>
 
 <script>
   let current = 1;
   const total = 8;
 
+  const img = document.getElementById("page");
   const counter = document.getElementById("counter");
   const prevBtn = document.getElementById("prev");
   const nextBtn = document.getElementById("next");
   const viewer = document.getElementById("viewer");
 
-  const imgA = document.getElementById("imgA");
-  const imgB = document.getElementById("imgB");
-  let front = imgA;  // image visible
-  let back  = imgB;  // image qui va entrer
-  let isAnimating = false;
+  function showPage() {
+    img.classList.add("is-fading");
 
-  function setCounter() {
-    counter.textContent = current + " / " + total;
-    prevBtn.style.opacity = (current === 1) ? 0.25 : 0.65;
-    nextBtn.style.opacity = (current === total) ? 0.25 : 0.65;
-  }
-
-  function preload(src) {
-    return new Promise((resolve) => {
-      const im = new Image();
-      im.onload = () => resolve(true);
-      im.onerror = () => resolve(false);
-      im.src = src;
-    });
-  }
-
-  async function goToPage(newPage, direction) {
-    if (isAnimating) return;
-    if (newPage < 1 || newPage > total) return;
-    if (newPage === current) return;
-
-    isAnimating = true;
-
-    const src = "page" + newPage + ".jpg";
-    await preload(src);
-
-    // Prépare l'image "back" hors écran selon direction
-    back.src = src;
-    back.alt = "Programme - page " + newPage;
-
-    // direction: "next" => la nouvelle arrive de droite (x=+100%)
-    //            "prev" => la nouvelle arrive de gauche (x=-100%)
-    const enterFrom = (direction === "next") ? 100 : -100;
-    const exitTo    = (direction === "next") ? -100 : 100;
-
-    back.style.transition = "none";
-    back.style.transform = `translateX(${enterFrom}%)`;
-
-    // force reflow pour appliquer la position initiale
-    back.getBoundingClientRect();
-
-    // Lance l'anim
-    front.style.transition = "transform 260ms ease-in-out";
-    back.style.transition  = "transform 260ms ease-in-out";
-
-    front.style.transform = `translateX(${exitTo}%)`;
-    back.style.transform  = "translateX(0%)";
-
-    // À la fin : swap
     setTimeout(() => {
-      // Remet l'ancienne au centre pour la prochaine fois
-      front.style.transition = "none";
-      front.style.transform = "translateX(0%)";
+      img.src = "page" + current + ".jpg";
+      img.alt = "Programme - page " + current;
+      counter.textContent = current + " / " + total;
 
-      // échange des rôles
-      const tmp = front;
-      front = back;
-      back = tmp;
-
-      current = newPage;
-      setCounter();
-      isAnimating = false;
-    }, 280);
+      prevBtn.style.opacity = (current === 1) ? 0.25 : 0.65;
+      nextBtn.style.opacity = (current === total) ? 0.25 : 0.65;
+    }, 120);
   }
 
   function next() {
-    if (current < total) goToPage(current + 1, "next");
+    if (current < total) {
+      current++;
+      showPage();
+    }
   }
 
   function prev() {
-    if (current > 1) goToPage(current - 1, "prev");
+    if (current > 1) {
+      current--;
+      showPage();
+    }
   }
 
   prevBtn.addEventListener("click", prev);
   nextBtn.addEventListener("click", next);
 
-  // Clavier (PC)
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") next();
     if (e.key === "ArrowLeft") prev();
   });
 
-  // Swipe tactile (mobile)
+  img.addEventListener("load", () => {
+    requestAnimationFrame(() => img.classList.remove("is-fading"));
+  });
+
+  /* Swipe tactile */
   let startX = 0;
   let startY = 0;
-  let isTouching = false;
 
   viewer.addEventListener("touchstart", (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-    isTouching = true;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
   }, { passive: true });
 
   viewer.addEventListener("touchend", (e) => {
-    if (!isTouching) return;
-    isTouching = false;
-
-    const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
-    const endY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : startY;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
 
     const dx = endX - startX;
     const dy = endY - startY;
@@ -225,13 +159,13 @@
     const maxVertical = 60;
 
     if (Math.abs(dx) >= minSwipe && Math.abs(dy) <= maxVertical) {
-      if (dx < 0) next();  // swipe gauche => page suivante
-      else prev();         // swipe droite => page précédente
+      if (dx < 0) next();
+      else prev();
     }
   }, { passive: true });
 
-  // init
-  setCounter();
+  showPage();
 </script>
+
 </body>
 </html>
