@@ -18,19 +18,22 @@
   img { width:100%; height:auto; display:block; }
 
   .navBtn {
-    position:absolute;
-    top:50%;
-    transform:translateY(-50%);
-    background:#076779;
-    color:white;
-    border:none;
-    padding:14px 16px;
-    font-size:20px;
-    cursor:pointer;
-    border-radius: 999px;
-    opacity: 0.92;
-  }
-  .navBtn:hover { opacity: 1; }
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  background: rgba(7, 103, 121, 0.65); /* couleur + transparence */
+  backdrop-filter: blur(4px);          /* optionnel, effet vitre (si supporté) */
+  -webkit-backdrop-filter: blur(4px);
+  color:white;
+  border:none;
+  padding:14px 16px;
+  font-size:20px;
+  cursor:pointer;
+  border-radius: 999px;
+  opacity: 0.65;                       /* plus transparent par défaut */
+  transition: opacity 0.15s ease;
+}
+.navBtn:hover { opacity: 0.95; }
   #prev { left:10px; }
   #next { right:10px; }
 
@@ -74,8 +77,8 @@
     counter.textContent = current + " / " + total;
 
     // désactive visuellement aux bornes
-    prevBtn.style.opacity = (current === 1) ? 0.35 : 0.92;
-    nextBtn.style.opacity = (current === total) ? 0.35 : 0.92;
+    prevBtn.style.opacity = (current === 1) ? 0.25 : 0.65;
+    nextBtn.style.opacity = (current === total) ? 0.25 : 0.65;
   }
 
   function next() {
