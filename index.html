@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Programme</title>
+<style>
+body { margin:0; text-align:center; background:#f4f4f4; font-family:Arial;}
+img { max-width:100%; height:auto;}
+button {
+  position:fixed;
+  top:50%;
+  transform:translateY(-50%);
+  background:#076779;
+  color:white;
+  border:none;
+  padding:15px;
+  font-size:20px;
+  cursor:pointer;
+}
+#prev { left:10px; }
+#next { right:10px; }
+</style>
+</head>
+<body>
+
+<button id="prev" onclick="prev()">←</button>
+<img id="page" src="page1.jpg">
+<button id="next" onclick="next()">→</button>
+
+<script>
+let current = 1;
+const total = 8;
+
+function showPage() {
+  document.getElementById("page").src = "page" + current + ".jpg";
+}
+
+function next() {
+  if (current < total) {
+    current++;
+    showPage();
+  }
+}
+
+function prev() {
+  if (current > 1) {
+    current--;
+    showPage();
+  }
+}
+</script>
+
+</body>
+</html>
