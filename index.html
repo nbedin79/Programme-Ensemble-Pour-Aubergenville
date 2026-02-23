@@ -35,6 +35,7 @@
   opacity: 1;
   transition: transform 260ms ease-in-out;
   will-change: transform;
+  pointer-events: none;
 }
 
 /* Pour que la "stage" prenne la hauteur de l'image */
@@ -68,6 +69,7 @@
   border-radius: 999px;
   opacity: 0.65;                       /* plus transparent par défaut */
   transition: opacity 0.15s ease;
+  z-index: 10;
 }
 .navBtn:hover { opacity: 0.95; }
   #prev { left:10px; }
@@ -83,6 +85,7 @@
     border-radius: 999px;
     font-size: 14px;
     user-select: none;
+    z-index: 10;
   }
 </style>
 </head>
