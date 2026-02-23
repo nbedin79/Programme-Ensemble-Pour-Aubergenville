@@ -104,43 +104,92 @@
   let current = 1;
   const total = 8;
 
-  const img = document.getElementById("page");
   const counter = document.getElementById("counter");
   const prevBtn = document.getElementById("prev");
   const nextBtn = document.getElementById("next");
   const viewer = document.getElementById("viewer");
 
-  function showPage() {
-  // Lance le fondu vers transparent
-  img.classList.add("is-fading");
+  const imgA = document.getElementById("imgA");
+  const imgB = document.getElementById("imgB");
+  let front = imgA;  // image visible
+  let back  = imgB;  // image qui va entrer
+  let isAnimating = false;
 
-  // Après un court délai, on change la page
-  setTimeout(() => {
-    img.src = "page" + current + ".jpg";
-    img.alt = "Programme - page " + current;
+  function setCounter() {
     counter.textContent = current + " / " + total;
-
     prevBtn.style.opacity = (current === 1) ? 0.25 : 0.65;
     nextBtn.style.opacity = (current === total) ? 0.25 : 0.65;
-  }, 120);
-}
+  }
+
+  function preload(src) {
+    return new Promise((resolve) => {
+      const im = new Image();
+      im.onload = () => resolve(true);
+      im.onerror = () => resolve(false);
+      im.src = src;
+    });
+  }
+
+  async function goToPage(newPage, direction) {
+    if (isAnimating) return;
+    if (newPage < 1 || newPage > total) return;
+    if (newPage === current) return;
+
+    isAnimating = true;
+
+    const src = "page" + newPage + ".jpg";
+    await preload(src);
+
+    // Prépare l'image "back" hors écran selon direction
+    back.src = src;
+    back.alt = "Programme - page " + newPage;
+
+    // direction: "next" => la nouvelle arrive de droite (x=+100%)
+    //            "prev" => la nouvelle arrive de gauche (x=-100%)
+    const enterFrom = (direction === "next") ? 100 : -100;
+    const exitTo    = (direction === "next") ? -100 : 100;
+
+    back.style.transition = "none";
+    back.style.transform = `translateX(${enterFrom}%)`;
+
+    // force reflow pour appliquer la position initiale
+    back.getBoundingClientRect();
+
+    // Lance l'anim
+    front.style.transition = "transform 260ms ease-in-out";
+    back.style.transition  = "transform 260ms ease-in-out";
+
+    front.style.transform = `translateX(${exitTo}%)`;
+    back.style.transform  = "translateX(0%)";
+
+    // À la fin : swap
+    setTimeout(() => {
+      // Remet l'ancienne au centre pour la prochaine fois
+      front.style.transition = "none";
+      front.style.transform = "translateX(0%)";
+
+      // échange des rôles
+      const tmp = front;
+      front = back;
+      back = tmp;
+
+      current = newPage;
+      setCounter();
+      isAnimating = false;
+    }, 280);
+  }
 
   function next() {
-    if (current < total) { current++; showPage(); }
+    if (current < total) goToPage(current + 1, "next");
   }
 
   function prev() {
-    if (current > 1) { current--; showPage(); }
+    if (current > 1) goToPage(current - 1, "prev");
   }
 
   prevBtn.addEventListener("click", prev);
   nextBtn.addEventListener("click", next);
 
-img.addEventListener("load", () => {
-  // Remonte l’opacité une fois l’image chargée
-  requestAnimationFrame(() => img.classList.remove("is-fading"));
-});
-  
   // Clavier (PC)
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") next();
@@ -169,18 +218,17 @@ img.addEventListener("load", () => {
     const dx = endX - startX;
     const dy = endY - startY;
 
-    // On ne déclenche que si c'est un geste horizontal assez net
-    const minSwipe = 50;          // distance minimale
-    const maxVertical = 60;       // tolérance verticale
+    const minSwipe = 50;
+    const maxVertical = 60;
 
     if (Math.abs(dx) >= minSwipe && Math.abs(dy) <= maxVertical) {
-      if (dx < 0) next();  // swipe gauche -> page suivante
-      else prev();         // swipe droite -> page précédente
+      if (dx < 0) next();  // swipe gauche => page suivante
+      else prev();         // swipe droite => page précédente
     }
   }, { passive: true });
 
   // init
-  showPage();
+  setCounter();
 </script>
 </body>
 </html>
