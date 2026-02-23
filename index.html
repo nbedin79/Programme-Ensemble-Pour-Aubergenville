@@ -17,6 +17,34 @@
   }
   img { width:100%; height:auto; display:block; }
 
+  .stage{
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+.slideImg{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  display: block;
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 260ms ease-in-out;
+  will-change: transform;
+}
+
+/* Pour que la "stage" prenne la hauteur de l'image */
+.stage::before{
+  content:"";
+  display:block;
+  padding-top: 141%; /* approx A4 portrait; ajustera visuellement */
+}
+
+  
 #page {
   opacity: 1;
   transition: opacity 180ms ease-in-out;
@@ -63,7 +91,10 @@
   <div class="wrap">
     <div class="viewer" id="viewer">
       <button class="navBtn" id="prev" aria-label="Page précédente">←</button>
-      <img id="page" src="page1.jpg" alt="Programme - page 1" />
+      <div class="stage" id="stage">
+      <img id="imgA" class="slideImg" src="page1.jpg" alt="Programme - page 1" />
+      <img id="imgB" class="slideImg" src="page1.jpg" alt="" />
+      </div>
       <button class="navBtn" id="next" aria-label="Page suivante">→</button>
       <div class="counter" id="counter">1 / 8</div>
     </div>
