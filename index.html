@@ -149,8 +149,8 @@
     }
   }
 
-  prevBtn.addEventListener("click", prev);
-  nextBtn.addEventListener("click", next);
+  prevBtn.addEventListener("click", () => { prev(); prevBtn.blur(); });
+  nextBtn.addEventListener("click", () => { next(); nextBtn.blur(); });
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") next();
